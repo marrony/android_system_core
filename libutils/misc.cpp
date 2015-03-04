@@ -88,3 +88,64 @@ void report_sysprop_change() {
 }
 
 }; // namespace android
+
+#include <dlfcn.h>
+
+#define DEFN(x, ret, args) \
+typedef ret (*x##_Func) args; \
+x##_Func x##_func = 0;
+
+#define GETFN(handle, x) x##_func = (x##_Func)dlsym(handle, #x)
+
+DEFN(_ZN7android12AssetManagerC1ENS0_9CacheModeE, void, (void*, int));
+DEFN(_ZN7android12AssetManager16addDefaultAssetsEv, bool, (void*));
+DEFN(_ZN7android12AssetManager4openEPKcNS_5Asset10AccessModeE, void*, (void*, const char*, int));
+DEFN(_ZN7android12AssetManager12openNonAssetEPKcNS_5Asset10AccessModeE, void*, (void*, const char*, int));
+
+bool initialized = false;
+
+void init() {
+    void* handle = dlopen("libandroidfw.so", RTLD_NOW);
+  
+    GETFN(handle, _ZN7android12AssetManagerC1ENS0_9CacheModeE);
+    GETFN(handle, _ZN7android12AssetManager16addDefaultAssetsEv);
+    GETFN(handle, _ZN7android12AssetManager4openEPKcNS_5Asset10AccessModeE);
+    GETFN(handle, _ZN7android12AssetManager12openNonAssetEPKcNS_5Asset10AccessModeE);
+
+    initialized = true;
+}
+
+//AssetManager::AssetManager(CacheMode cacheMode)
+extern "C" void _ZN7android12AssetManagerC1ENS0_9CacheModeE(void* mgr, int cacheMode) {
+    if(!initialized)
+        init();
+
+    _ZN7android12AssetManagerC1ENS0_9CacheModeE_func(mgr, cacheMode);
+}
+
+//bool AssetManager::addDefaultAssets()
+extern "C" bool _ZN7android12AssetManager16addDefaultAssetsEv(void* mgr) {
+    if(!initialized)
+        init();
+
+    return _ZN7android12AssetManager16addDefaultAssetsEv_func(mgr);
+}
+
+//Asset* AssetManager::open(const char* fileName, AccessMode mode)
+extern "C" void* _ZN7android12AssetManager4openEPKcNS_5Asset10AccessModeE(void* mgr,
+                       const char* fileName, int mode) {
+    if(!initialized)
+        init();
+
+    return _ZN7android12AssetManager4openEPKcNS_5Asset10AccessModeE_func(mgr, fileName, mode);
+}
+
+//Asset* AssetManager::openNonAsset(const char* fileName, AccessMode mode)
+extern "C" void* _ZN7android12AssetManager12openNonAssetEPKcNS_5Asset10AccessModeE(void* mgr,
+                        const char* fileName, int mode) {
+    if(!initialized)
+        init();
+
+    return _ZN7android12AssetManager12openNonAssetEPKcNS_5Asset10AccessModeE_func(mgr, fileName, mode);
+}
+

@@ -91,6 +91,10 @@ void CallStack::clear() {
     mCount = 0;
 }
 
+extern "C" void _ZN7android9CallStack6updateEii(CallStack* callStack, int32_t ignoreDepth, int32_t maxDepth) {
+   callStack->update(ignoreDepth, maxDepth, -1);
+}
+
 void CallStack::update(int32_t ignoreDepth, int32_t maxDepth, pid_t tid) {
     if (maxDepth > MAX_DEPTH) {
         maxDepth = MAX_DEPTH;
@@ -112,6 +116,10 @@ void CallStack::update(int32_t ignoreDepth, int32_t maxDepth, pid_t tid) {
 void CallStack::log(const char* logtag, android_LogPriority priority, const char* prefix) const {
     LogPrinter printer(logtag, priority, prefix, /*ignoreBlankLines*/false);
     print(printer);
+}
+
+extern "C" void _ZNK7android9CallStack4dumpEPKc(CallStack* callStack, const char* prefix) {
+   callStack->toString(prefix);
 }
 
 void CallStack::dump(int fd, int indent, const char* prefix) const {
